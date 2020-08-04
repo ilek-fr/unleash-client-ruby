@@ -12,8 +12,8 @@ module Unleash
     def initialize(params = {})
       params = {} if params.nil?
 
-      self.name       = params.fetch('name', nil)
-      self.enabled    = params.fetch('enabled', false)
+      self.name       = params.fetch('name', nil).freeze
+      self.enabled    = params.fetch('enabled', false).freeze
 
       self.strategies = initialize_strategies(params)
       self.variant_definitions = initialize_variant_definitions(params)
@@ -23,7 +23,9 @@ module Unleash
       "<FeatureToggle: name=#{name},enabled=#{enabled},strategies=#{strategies},variant_definitions=#{variant_definitions}>"
     end
 
-    def is_enabled?(context, default_result)
+    # TODO!!: ensure that we have a good backwards compatible API here.
+    def is_enabled?(context, default_result, &blk)
+      default_result = yield(self.name, context) unless blk.nil?
       result = am_enabled?(context, default_result)
 
       choice = result ? :yes : :no
